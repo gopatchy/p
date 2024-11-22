@@ -1,18 +1,89 @@
-<html>
-<head>
-	<link
-		rel="stylesheet"
-		media="(prefers-color-scheme:light)"
-		href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/themes/light.css"
-	/>
-	<link
-		rel="stylesheet"
-		media="(prefers-color-scheme:dark)"
-		href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/themes/dark.css"
-		onload="document.documentElement.classList.add('sl-theme-dark');"
-	/>
-	<script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/shoelace.js" ></script>
-</head>
-<body>
-</body>
+<!doctype html>
+<html class="sl-theme-dark">
+	<head>
+		<style>
+:not(:defined) {
+  visibility: hidden;
+}
+body {
+	margin: 30px;
+	font: 12px var(--sl-font-sans);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+		</style>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/themes/dark.css" />
+		<script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/shoelace-autoloader.js"></script>
+		<script>
+function clearAlerts() {
+	document.getElementById('sent').hide();
+	document.getElementById('err').hide();
+}
+
+function error(err1, err2) {
+	clearAlerts();
+
+	document.getElementById('err1').innerText = err1;
+	document.getElementById('err2').innerText = err2;
+	document.getElementById('err').show();
+}
+
+async function pageIan() {
+	const msg = document.getElementById('message').value;
+
+	if (msg == '') {
+		error('Please fill in Message', '');
+		return;
+	}
+
+	clearAlerts();
+
+	const resp = await fetch(
+		'https://events.pagerduty.com/v2/enqueue',
+		{
+			method: 'POST',
+			body: JSON.stringify({
+				payload: {
+					severity: 'critical',
+					source: 'jsapp',
+					summary: msg,
+				},
+				routing_key: '63e451a6e5f84309d08d439bfe5efab5',
+				event_action: 'trigger',
+			}),
+		},
+	)
+
+	if (!resp.ok) {
+		error('Failed to send page', (await resp.json()).message);
+		return;
+	}
+
+	document.getElementById('sent').show();
+}
+		</script>
+		<title>Page Ian</title>
+	</head>
+	<body>
+		<div style="width: min(500px, 100vw)">
+			<sl-alert id="err" variant="danger">
+				<sl-icon slot="icon" name="exclamation-octagon"></sl-icon>
+				<strong id="err1"></strong><br />
+				<span id="err2"></span>
+			</sl-alert>
+			<sl-alert id="sent" variant="success">
+				<sl-icon slot="icon" name="check2-circle"></sl-icon>
+				<strong>Page sent</strong>
+			</sl-alert>
+			<br />
+			<sl-textarea id="message" placeholder="Message" oninput="clearAlerts()"></sl-textarea>
+			<br />
+			<br />
+			<div style="text-align: center">
+				<sl-button type="submit" variant="primary" onclick="pageIan()">Page Ian</sl-button>
+			</div>
+		</div>
+	</body>
 </html>
