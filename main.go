@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strconv"
-	"strings"
 )
 
 func main() {
@@ -13,7 +11,7 @@ func main() {
 		fmt.Fprintf(w, "Hello! you've requested %s\n", r.URL.Path)
 	})
 
-	http.Handle("/", http.FileServer(http.Dir("./static")))
+	http.Handle("/static", http.FileServer(http.Dir("./static")))
 
 	port := os.Getenv("PORT")
 	if port == "" {
