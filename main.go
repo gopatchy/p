@@ -23,11 +23,13 @@ type PDPayload struct {
 }
 
 type PHandler struct {
+	routingKey string
 	next http.Handler
 }
 
-func NewPHandler(next http.Handler) *PHandler {
+func NewPHandler(routingKey string, next http.Handler) *PHandler {
 	return &PHandler{
+		routingKey: routingKey,
 		next: next,
 	}
 }
@@ -39,6 +41,8 @@ func (ph *PHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Printf("%s %s", r.RemoteAddr, r.Form.Encode())
+
 	msg := r.Form.Get("msg")
 	if msg == "" {
 		ph.next.ServeHTTP(w, r)
@@ -47,11 +51,11 @@ func (ph *PHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	buf := &bytes.Buffer{}
 	err = json.NewEncoder(buf).Encode(PDAlert{
-		RoutingKey:  "63e451a6e5f84309d08d439bfe5efab5",
+		RoutingKey:  ph.routingKey,
 		EventAction: "trigger",
 		Payload: PDPayload{
 			Summary:  msg,
-			Source:   "urlparam",
+			Source:   r.RemoteAddr,
 			Severity: "critical",
 		},
 	})
@@ -87,7 +91,12 @@ func (ph *PHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.Handle("/", NewPHandler(http.FileServer(http.Dir("./static"))))
+	routingKey := os.Getenv("PD_ROUTING_KEY")
+	if routingKey == "" {
+		log.Fatalf("please set PD_ROUTING_KEY")
+	}
+
+	http.Handle("/", NewPHandler(routingKey, http.FileServer(http.Dir("./static"))))
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -98,6 +107,6 @@ func main() {
 	log.Printf("listening on %s", bind)
 
 	if err := http.ListenAndServe(bind, nil); err != nil {
-		panic(err)
+		log.Fatalf("listen: %s", err)
 	}
 }
