@@ -68,22 +68,29 @@ async function pageIan() {
 	</head>
 	<body>
 		<div style="width: min(500px, 100vw)">
-			<sl-textarea id="message" placeholder="Message" oninput="clearAlerts()"></sl-textarea>
-			<br />
-			<br />
-			<div style="text-align: center">
-				<sl-button type="submit" variant="primary" onclick="pageIan()">Page Ian</sl-button>
-			</div>
-			<br />
-			<sl-alert id="err" variant="danger">
-				<sl-icon slot="icon" name="exclamation-octagon"></sl-icon>
-				<strong id="err1"></strong><br />
-				<span id="err2"></span>
-			</sl-alert>
-			<sl-alert id="sent" variant="success">
-				<sl-icon slot="icon" name="check2-circle"></sl-icon>
-				<strong>Page sent</strong>
-			</sl-alert>
+			<sl-tab-group>
+				<sl-tab slot="nav" panel="page">Page</sl-tab>
+				<sl-tab slot="nav" panel="contact">Contact</sl-tab>
+
+				<sl-tab-panel name="page">
+					<sl-textarea id="message" placeholder="Message" oninput="clearAlerts()"></sl-textarea>
+					<br />
+					<div style="text-align: center">
+						<sl-button type="submit" variant="primary" onclick="pageIan()">Page Ian</sl-button>
+					</div>
+					<br />
+					<sl-alert id="err" variant="danger">
+						<sl-icon slot="icon" name="exclamation-octagon"></sl-icon>
+						<strong id="err1"></strong><br />
+						<span id="err2"></span>
+					</sl-alert>
+					<sl-alert id="sent" variant="success">
+						<sl-icon slot="icon" name="check2-circle"></sl-icon>
+						<strong>Page sent</strong>
+					</sl-alert>
+				</sl-tab-panel>
+				<sl-tab-panel name="contact">This is the custom tab panel.</sl-tab-panel>
+			</sl-tab-group>
 		</div>
 	</body>
 </html>
