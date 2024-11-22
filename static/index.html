@@ -5,12 +5,18 @@
 :not(:defined) {
   visibility: hidden;
 }
+
 body {
-	margin: 30px;
+	margin: 20px;
 	font: 12px var(--sl-font-sans);
 	display: flex;
 	flex-direction: column;
 	align-items: center;
+}
+
+a {
+	color: inherit;
+	text-decoration: none;
 }
 		</style>
 		<title>Page Ian</title>
@@ -89,7 +95,17 @@ async function pageIan() {
 						<strong>Page sent</strong>
 					</sl-alert>
 				</sl-tab-panel>
-				<sl-tab-panel name="contact">This is the custom tab panel.</sl-tab-panel>
+				<sl-tab-panel name="contact" style="text-align: center">
+					<sl-card class="card-basic" style="font: 16px var(--sl-font-mono)">
+						{{if .CONTACT_PHONE}}
+						<div>
+							<a href="tel:{{.CONTACT_PHONE | replaceAll " " "" | replaceAll "-" ""}}">
+								<sl-icon name="telephone" style="padding-right: 10px"></sl-icon> {{.CONTACT_PHONE}}
+							</a>
+						</div>
+						{{end}}
+					</sl-card>
+				</sl-tab-panel>
 			</sl-tab-group>
 		</div>
 	</body>

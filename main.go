@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 )
 
 type PDAlert struct {
@@ -23,15 +25,26 @@ type PDPayload struct {
 }
 
 type PHandler struct {
+	tmpl       *template.Template
 	routingKey string
-	next http.Handler
 }
 
-func NewPHandler(routingKey string, next http.Handler) *PHandler {
-	return &PHandler{
-		routingKey: routingKey,
-		next: next,
+func NewPHandler(routingKey string) (*PHandler, error) {
+	tmpl := template.New("index.html")
+
+	tmpl.Funcs(template.FuncMap{
+		"replaceAll": func(o, n, s string) string { return strings.ReplaceAll(s, o, n) },
+	})
+
+	tmpl, err := tmpl.ParseFiles("static/index.html")
+	if err != nil {
+		return nil, fmt.Errorf("static/index.html: %w", err)
 	}
+
+	return &PHandler{
+		tmpl:       tmpl,
+		routingKey: routingKey,
+	}, nil
 }
 
 func (ph *PHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -45,7 +58,12 @@ func (ph *PHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	msg := r.Form.Get("msg")
 	if msg == "" {
-		ph.next.ServeHTTP(w, r)
+		err = ph.tmpl.Execute(w, ph.envs())
+		if err != nil {
+			http.Error(w, fmt.Sprintf("execute %s: %s\n", ph.tmpl.Name(), err), http.StatusBadRequest)
+			return
+		}
+
 		return
 	}
 
@@ -76,7 +94,7 @@ func (ph *PHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, fmt.Sprintf("error from PD: %s\n", err), http.StatusBadRequest)
-    	return
+		return
 	}
 
 	body, _ := io.ReadAll(res.Body)
@@ -84,10 +102,27 @@ func (ph *PHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if res.StatusCode != 202 {
 		http.Error(w, fmt.Sprintf("error from PD: %s", string(body)), http.StatusBadRequest)
-    	return
+		return
 	}
-	
+
 	w.Write([]byte("page sent\n"))
+}
+
+var allowedEnvs = []string{
+	"CONTACT_PHONE",
+}
+
+func (ph *PHandler) envs() map[string]string {
+	envs := map[string]string{}
+
+	for _, k := range allowedEnvs {
+		v := os.Getenv(k)
+		if v != "" {
+			envs[k] = v
+		}
+	}
+
+	return envs
 }
 
 func main() {
@@ -96,7 +131,12 @@ func main() {
 		log.Fatalf("please set PD_ROUTING_KEY")
 	}
 
-	http.Handle("/", NewPHandler(routingKey, http.FileServer(http.Dir("./static"))))
+	ph, err := NewPHandler(routingKey)
+	if err != nil {
+		log.Fatalf("NewPHandler: %s", err)
+	}
+
+	http.Handle("/", ph)
 
 	port := os.Getenv("PORT")
 	if port == "" {
