@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="sl-theme-dark">
+<html>
 	<head>
 		<style>
 :not(:defined) {
@@ -44,7 +44,17 @@ sl-copy-button {
 		<title>Page {{.SHORT_NAME}}</title>
 		<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFNWRyAxLjEvL0VOIiAiaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkIj4KPHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHZpZXdCb3g9IjAgMCAxMDIuMzQ0IDkzLjMxMDUiPgogPGc+CiAgPHJlY3QgaGVpZ2h0PSI5My4zMTA1IiBvcGFjaXR5PSIwIiB3aWR0aD0iMTAyLjM0NCIgeD0iMCIgeT0iMCIvPgogIDxwYXRoIGQ9Ik0xMy4zMzAxIDkyLjc3MzRMODkuMDEzNyA5Mi43NzM0Qzk3LjMxNDUgOTIuNzczNCAxMDIuMzQ0IDg3LjAxMTcgMTAyLjM0NCA3OS41NDFDMTAyLjM0NCA3Ny4yNDYxIDEwMS42NiA3NC44NTM1IDEwMC40MzkgNzIuNzA1MUw2Mi41NDg4IDYuNjg5NDVDNjAuMDA5OCAyLjI0NjA5IDU1LjY2NDEgMCA1MS4xNzE5IDBDNDYuNjc5NyAwIDQyLjI4NTIgMi4yNDYwOSAzOS43OTQ5IDYuNjg5NDVMMS45MDQzIDcyLjcwNTFDMC41ODU5MzggNzQuOTAyMyAwIDc3LjI0NjEgMCA3OS41NDFDMCA4Ny4wMTE3IDUuMDI5MyA5Mi43NzM0IDEzLjMzMDEgOTIuNzczNFoiIGZpbGw9IiNmZjQ1M2EiLz4KICA8cGF0aCBkPSJNNTEuMjIwNyA2MC4xNTYyQzQ4LjY4MTYgNjAuMTU2MiA0Ny4yNjU2IDU4LjY5MTQgNDcuMjE2OCA1Ni4xMDM1TDQ2LjU4MiAyOS41NDFDNDYuNTMzMiAyNi45NTMxIDQ4LjQzNzUgMjUuMDk3NyA1MS4xNzE5IDI1LjA5NzdDNTMuODA4NiAyNS4wOTc3IDU1Ljg1OTQgMjcuMDAyIDU1LjgxMDUgMjkuNTg5OEw1NS4wNzgxIDU2LjEwMzVDNTUuMDI5MyA1OC43NDAyIDUzLjYxMzMgNjAuMTU2MiA1MS4yMjA3IDYwLjE1NjJaTTUxLjIyMDcgNzYuNTEzN0M0OC4yOTEgNzYuNTEzNyA0NS43NTIgNzQuMTY5OSA0NS43NTIgNzEuMjg5MUM0NS43NTIgNjguMzU5NCA0OC4yNDIyIDY2LjAxNTYgNTEuMjIwNyA2Ni4wMTU2QzU0LjE1MDQgNjYuMDE1NiA1Ni42NDA2IDY4LjMxMDUgNTYuNjQwNiA3MS4yODkxQzU2LjY0MDYgNzQuMjE4OCA1NC4xMDE2IDc2LjUxMzcgNTEuMjIwNyA3Ni41MTM3WiIgZmlsbD0iYmxhY2siLz4KIDwvZz4KPC9zdmc+Cg==" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/themes/dark.css" />
+		<link
+				rel="stylesheet"
+				media="(prefers-color-scheme:light)"
+				href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/themes/light.css"
+				/>
+		<link
+				rel="stylesheet"
+				media="(prefers-color-scheme:dark)"
+				href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/themes/dark.css"
+				onload="document.documentElement.classList.add('sl-theme-dark');"
+				/>
 		<script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/shoelace-autoloader.js"></script>
 		<script>
 function clearAlerts() {
