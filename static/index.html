@@ -23,7 +23,7 @@ a {
 }
 
 .contact {
-	margin-bottom: 10px;
+	margin-bottom: 16px;
 	white-space: nowrap;
 }
 
@@ -31,7 +31,7 @@ a {
 	margin-right: 10px;
 }
 		</style>
-		<title>Page Ian</title>
+		<title>Page {{.SHORT_NAME}}</title>
 		<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFNWRyAxLjEvL0VOIiAiaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkIj4KPHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHZpZXdCb3g9IjAgMCAxMDIuMzQ0IDkzLjMxMDUiPgogPGc+CiAgPHJlY3QgaGVpZ2h0PSI5My4zMTA1IiBvcGFjaXR5PSIwIiB3aWR0aD0iMTAyLjM0NCIgeD0iMCIgeT0iMCIvPgogIDxwYXRoIGQ9Ik0xMy4zMzAxIDkyLjc3MzRMODkuMDEzNyA5Mi43NzM0Qzk3LjMxNDUgOTIuNzczNCAxMDIuMzQ0IDg3LjAxMTcgMTAyLjM0NCA3OS41NDFDMTAyLjM0NCA3Ny4yNDYxIDEwMS42NiA3NC44NTM1IDEwMC40MzkgNzIuNzA1MUw2Mi41NDg4IDYuNjg5NDVDNjAuMDA5OCAyLjI0NjA5IDU1LjY2NDEgMCA1MS4xNzE5IDBDNDYuNjc5NyAwIDQyLjI4NTIgMi4yNDYwOSAzOS43OTQ5IDYuNjg5NDVMMS45MDQzIDcyLjcwNTFDMC41ODU5MzggNzQuOTAyMyAwIDc3LjI0NjEgMCA3OS41NDFDMCA4Ny4wMTE3IDUuMDI5MyA5Mi43NzM0IDEzLjMzMDEgOTIuNzczNFoiIGZpbGw9IiNmZjQ1M2EiLz4KICA8cGF0aCBkPSJNNTEuMjIwNyA2MC4xNTYyQzQ4LjY4MTYgNjAuMTU2MiA0Ny4yNjU2IDU4LjY5MTQgNDcuMjE2OCA1Ni4xMDM1TDQ2LjU4MiAyOS41NDFDNDYuNTMzMiAyNi45NTMxIDQ4LjQzNzUgMjUuMDk3NyA1MS4xNzE5IDI1LjA5NzdDNTMuODA4NiAyNS4wOTc3IDU1Ljg1OTQgMjcuMDAyIDU1LjgxMDUgMjkuNTg5OEw1NS4wNzgxIDU2LjEwMzVDNTUuMDI5MyA1OC43NDAyIDUzLjYxMzMgNjAuMTU2MiA1MS4yMjA3IDYwLjE1NjJaTTUxLjIyMDcgNzYuNTEzN0M0OC4yOTEgNzYuNTEzNyA0NS43NTIgNzQuMTY5OSA0NS43NTIgNzEuMjg5MUM0NS43NTIgNjguMzU5NCA0OC4yNDIyIDY2LjAxNTYgNTEuMjIwNyA2Ni4wMTU2QzU0LjE1MDQgNjYuMDE1NiA1Ni42NDA2IDY4LjMxMDUgNTYuNjQwNiA3MS4yODkxQzU2LjY0MDYgNzQuMjE4OCA1NC4xMDE2IDc2LjUxMzcgNTEuMjIwNyA3Ni41MTM3WiIgZmlsbD0iYmxhY2siLz4KIDwvZz4KPC9zdmc+Cg==" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/themes/dark.css" />
@@ -50,7 +50,7 @@ function error(err1, err2) {
 	document.getElementById('err').show();
 }
 
-async function pageIan() {
+async function page() {
 	const msg = document.getElementById('message').value;
 
 	if (msg == '') {
@@ -94,7 +94,7 @@ async function pageIan() {
 					<sl-textarea id="message" placeholder="Message" oninput="clearAlerts()"></sl-textarea>
 					<br />
 					<div style="text-align: center">
-						<sl-button type="submit" variant="primary" onclick="pageIan()">Page Ian</sl-button>
+						<sl-button type="submit" variant="primary" onclick="page()">Page {{.SHORT_NAME}}</sl-button>
 					</div>
 					<br />
 					<sl-alert id="err" variant="danger">
@@ -166,7 +166,7 @@ async function pageIan() {
 						</div>
 						{{end}}
 
-						<div class="contact" style="display: flex; flex-direction: row; align-items: center;">
+						<div class="contact" style="display: flex; flex-direction: row; align-items: center; margin-top: -6px;">
 							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-terminal" viewBox="0 0 16 16">
 								<path d="M6 9a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3A.5.5 0 0 1 6 9M3.854 4.146a.5.5 0 1 0-.708.708L4.793 6.5 3.146 8.146a.5.5 0 1 0 .708.708l2-2a.5.5 0 0 0 0-.708z"/>
 								<path d="M2 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm12 1a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/>
@@ -175,6 +175,45 @@ async function pageIan() {
 							<sl-copy-button id="tmp" from="curl"></sl-copy-button>
 							<script>
 								document.getElementById('curl').innerText = `curl -d 'msg=Test page' ${window.location.href}`;
+							</script>
+						</div>
+
+						<div style="text-align: center;">
+							<sl-qr-code id="qr" background="#242428" fill="white" size="256"></sl-qr-code>
+							<script>
+								document.getElementById('qr').value = `
+BEGIN:VCARD
+VERSION:4.0
+
+{{if .CONTACT_NAME}}
+FN:{{.CONTACT_NAME}}
+{{end}}
+
+{{if .CONTACT_PHONE}}
+TEL;TYPE=voice:{{.CONTACT_PHONE}}
+URL:tel:{{.CONTACT_PHONE | replaceAll " " "" | replaceAll "-" ""}}
+{{end}}
+
+{{if .CONTACT_SMS}}
+TEL;TYPE=text:{{.CONTACT_SMS}}
+URL:sms:{{.CONTACT_SMS | replaceAll " " "" | replaceAll "-" ""}}
+{{end}}
+
+{{if .CONTACT_IMESSAGE}}
+URL:imessage:{{.CONTACT_IMESSAGE | replaceAll " " "" | replaceAll "-" ""}}
+{{end}}
+
+{{if .CONTACT_WHATSAPP}}
+URL:https://wa.me/{{.CONTACT_WHATSAPP | replaceAll " " "" | replaceAll "-" "" | replaceAll "+" ""}}
+{{end}}
+
+{{if .CONTACT_PAGE_EMAIL}}
+EMAIL:{{.CONTACT_PAGE_EMAIL}}
+URL:mailto:{{.CONTACT_PAGE_EMAIL}}
+{{end}}
+
+END:VCARD
+`;
 							</script>
 						</div>
 					</sl-card>

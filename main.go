@@ -109,6 +109,8 @@ func (ph *PHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 var allowedEnvs = []string{
+	"SHORT_NAME",
+	"CONTACT_NAME",
 	"CONTACT_PHONE",
 	"CONTACT_SMS",
 	"CONTACT_IMESSAGE",
