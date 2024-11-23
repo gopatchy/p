@@ -233,7 +233,7 @@ URL:mailto:{{.CONTACT_PAGE_EMAIL}}
 END:VCARD
 `;
 								document.getElementById('qr').value = qr;
-								document.getElementById('qr-a').href = URL.createObjectURL(new Blob([qr], { type: 'text/vcard' }));
+								document.getElementById('qr-a').href = `data:text/vcard;base64,${btoa(qr)}`;
 							</script>
 						</div>
 					</sl-card>
