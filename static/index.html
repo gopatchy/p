@@ -195,9 +195,11 @@ async function page() {
 						</div>
 
 						<div class="contact" style="margin-top: 15px; justify-content: center;">
-							<sl-qr-code id="qr" background="#242428" fill="white" size="300"></sl-qr-code>
+							<a id="qr-a">
+								<sl-qr-code id="qr" background="#242428" fill="white" size="300"></sl-qr-code>
+							</a>
 							<script>
-								document.getElementById('qr').value = `
+								const qr = `
 BEGIN:VCARD
 VERSION:4.0
 
@@ -230,6 +232,8 @@ URL:mailto:{{.CONTACT_PAGE_EMAIL}}
 
 END:VCARD
 `;
+								document.getElementById('qr').value = qr;
+								document.getElementById('qr-a').href = URL.createObjectURL(new Blob([qr], { type: 'text/vcard' }));
 							</script>
 						</div>
 					</sl-card>
