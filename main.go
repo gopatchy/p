@@ -110,6 +110,10 @@ func (ph *PHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 var allowedEnvs = []string{
 	"CONTACT_PHONE",
+	"CONTACT_SMS",
+	"CONTACT_IMESSAGE",
+	"CONTACT_WHATSAPP",
+	"CONTACT_PAGE_EMAIL",
 }
 
 func (ph *PHandler) envs() map[string]string {
