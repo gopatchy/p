@@ -61,9 +61,9 @@ function error(err1, err2) {
 }
 
 async function page() {
-	const msg = document.getElementById('message').value;
+	const m = document.getElementById('message').value;
 
-	if (msg == '') {
+	if (m == '') {
 		error('Please fill in Message', '');
 		return;
 	}
@@ -71,7 +71,7 @@ async function page() {
 	clearAlerts();
 
 	const params = new URLSearchParams({
-		msg: msg,
+		m: m,
 	});
 
 	const resp = await fetch(
@@ -189,7 +189,7 @@ async function page() {
 							<span id="curl"></span>
 							<sl-copy-button from="curl"></sl-copy-button>
 							<script>
-								document.getElementById('curl').innerText = `curl -d 'msg=test' ${window.location.href}`;
+								document.getElementById('curl').innerText = `curl -d 'm=test' ${window.location.href}`;
 							</script>
 						</div>
 

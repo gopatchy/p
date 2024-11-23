@@ -56,8 +56,8 @@ func (ph *PHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("%s %s", r.RemoteAddr, r.Form.Encode())
 
-	msg := r.Form.Get("msg")
-	if msg == "" {
+	m := r.Form.Get("m")
+	if m == "" {
 		err = ph.tmpl.Execute(w, ph.envs())
 		if err != nil {
 			http.Error(w, fmt.Sprintf("execute %s: %s\n", ph.tmpl.Name(), err), http.StatusBadRequest)
@@ -72,7 +72,7 @@ func (ph *PHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		RoutingKey:  ph.routingKey,
 		EventAction: "trigger",
 		Payload: PDPayload{
-			Summary:  msg,
+			Summary:  m,
 			Source:   r.RemoteAddr,
 			Severity: "critical",
 		},
