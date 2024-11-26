@@ -1,11 +1,8 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"html/template"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -14,22 +11,10 @@ import (
 	"github.com/openai/openai-go"
 )
 
-type PDAlert struct {
-	RoutingKey  string    `json:"routing_key"`
-	EventAction string    `json:"event_action"`
-	Payload     PDPayload `json:"payload"`
-}
-
-type PDPayload struct {
-	Summary  string `json:"summary"`
-	Source   string `json:"source"`
-	Severity string `json:"severity"`
-}
-
 type PHandler struct {
-	tmpl       *template.Template
-	routingKey string
-	mux        *http.ServeMux
+	tmpl *template.Template
+	pd   *pdClient
+	mux  *http.ServeMux
 }
 
 func NewPHandler(routingKey string) (*PHandler, error) {
@@ -45,9 +30,9 @@ func NewPHandler(routingKey string) (*PHandler, error) {
 	}
 
 	ph := &PHandler{
-		tmpl:       tmpl,
-		routingKey: routingKey,
-		mux:        http.NewServeMux(),
+		tmpl: tmpl,
+		pd:   newPDClient(routingKey),
+		mux:  http.NewServeMux(),
 	}
 
 	ph.mux.HandleFunc("/{$}", ph.serveRoot)
@@ -80,44 +65,11 @@ func (ph *PHandler) serveRoot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	buf := &bytes.Buffer{}
-	err = json.NewEncoder(buf).Encode(PDAlert{
-		RoutingKey:  ph.routingKey,
-		EventAction: "trigger",
-		Payload: PDPayload{
-			Summary:  m,
-			Source:   r.RemoteAddr,
-			Severity: "critical",
-		},
-	})
-
+	err = ph.pd.sendAlert(m)
 	if err != nil {
-		sendError(w, http.StatusInternalServerError, "Create PD request: %s", err)
+		sendError(w, http.StatusInternalServerError, "Send PD alert: %s", err)
 		return
 	}
-
-	req, err := http.NewRequest("POST", "https://events.pagerduty.com/v2/enqueue", buf)
-	if err != nil {
-		sendError(w, http.StatusInternalServerError, "Create HTTP request: %s", err)
-		return
-	}
-
-	c := &http.Client{}
-	res, err := c.Do(req)
-
-	if err != nil {
-		sendError(w, http.StatusInternalServerError, "Call PagerDuty: %s", err)
-		return
-	}
-
-	body, _ := io.ReadAll(res.Body)
-	_ = res.Body.Close()
-
-	if res.StatusCode != 202 {
-		sendError(w, http.StatusInternalServerError, "PagerDuty error: %s", string(body))
-		return
-	}
-
 	sendResponse(w, "Page sent")
 }
 
