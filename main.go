@@ -139,7 +139,7 @@ func (ph *PHandler) serveSuggest(w http.ResponseWriter, r *http.Request) {
 
 	comp, err := c.Chat.Completions.New(r.Context(), openai.ChatCompletionNewParams{
 		Messages: openai.F([]openai.ChatCompletionMessageParamUnion{
-			openai.SystemMessage("You are an assistant helping users to write good text to include in an urgent page sent to a person. Good page text contains a very brief description of the problem, its impact, the identity of the sender, and how to contact them. The request will consist of just the user's proposed page text. Respond with just a very brief message suggesting improvements that the sender might make. Remember that the user is likely in an urgent, stressful situation, so brevity and erring on the side of permissiveness is advised."),
+			openai.SystemMessage("You are an assistant helping users to write good text to include in an urgent page sent to a person. Good page text contains a very brief description of the problem, the systems it affects, the identity of the sender, and how to contact them. The request will consist of just the user's proposed page text. Respond with just a very brief message suggesting improvements that the sender might make. Remember that the user is likely in an urgent, stressful situation, so brevity and erring on the side of permissiveness is advised. Assume that the sender and recipient of the page have significant context on the systems involved and both know that sending a page indicates urgency."),
 			openai.UserMessage(m),
 		}),
 		Model: openai.F(openai.ChatModelGPT4o),
