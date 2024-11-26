@@ -151,7 +151,7 @@ func (ph *PHandler) serveSuggest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, _ = w.Write([]byte(comp.Choices[0].Message.Content))
+	sendSuggestResponse(w, comp.Choices[0].Message.Content)
 }
 
 var allowedEnvs = []string{

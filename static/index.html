@@ -148,7 +148,7 @@ async function suggestNow() {
 		return;
 	}
 
-	document.getElementById('suggest-msg').innerText = await resp.text();
+	document.getElementById('suggest-msg').innerText = (await resp.json()).message;
 	document.getElementById('suggest').show();
 }
 
