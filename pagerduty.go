@@ -45,24 +45,26 @@ func (pd *pdClient) sendAlert(msg string) error {
 	})
 
 	if err != nil {
-		return fmt.Errorf("Encode PD alert: %s", err)
+		return err
 	}
 
 	req, err := http.NewRequest("POST", "https://events.pagerduty.com/v2/enqueue", buf)
 	if err != nil {
-		return fmt.Errorf("Create HTTP request: %s", err)
+		return err
 	}
+
+	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := pd.c.Do(req)
 	if err != nil {
-		return fmt.Errorf("Call PagerDuty: %s", err)
+		return err
 	}
 
 	defer resp.Body.Close()
 	body, _ := io.ReadAll(resp.Body)
 
 	if resp.StatusCode != 202 {
-		return fmt.Errorf("PagerDuty error: %s", string(body))
+		return fmt.Errorf("%s", string(body))
 	}
 
 	return nil

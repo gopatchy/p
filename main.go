@@ -7,13 +7,12 @@ import (
 	"net/http"
 	"os"
 	"strings"
-
-	"github.com/openai/openai-go"
 )
 
 type PHandler struct {
 	tmpl *template.Template
 	pd   *pdClient
+	oai  *oaiClient
 	mux  *http.ServeMux
 }
 
@@ -29,9 +28,15 @@ func NewPHandler(routingKey string) (*PHandler, error) {
 		return nil, fmt.Errorf("static/index.html: %w", err)
 	}
 
+	oai, err := newOAIClientFromEnv()
+	if err != nil {
+		return nil, fmt.Errorf("newOAIClientFromEnv: %w", err)
+	}
+
 	ph := &PHandler{
 		tmpl: tmpl,
 		pd:   newPDClient(routingKey),
+		oai:  oai,
 		mux:  http.NewServeMux(),
 	}
 
@@ -67,7 +72,7 @@ func (ph *PHandler) serveRoot(w http.ResponseWriter, r *http.Request) {
 
 	err = ph.pd.sendAlert(m)
 	if err != nil {
-		sendError(w, http.StatusInternalServerError, "Send PD alert: %s", err)
+		sendError(w, http.StatusInternalServerError, "Error sending to PagerDuty: %s", err)
 		return
 	}
 	sendResponse(w, "Page sent")
@@ -88,22 +93,16 @@ func (ph *PHandler) serveSuggest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c := openai.NewClient()
-
-	comp, err := c.Chat.Completions.New(r.Context(), openai.ChatCompletionNewParams{
-		Messages: openai.F([]openai.ChatCompletionMessageParamUnion{
-			openai.SystemMessage(`You are an assistant helping users to write good text to include in an urgent page sent to a person. Good page text contains a very brief description of the problem (e.g. "down" or "slow"), the systems it affects (acronyms for system names are fine), the identity of the sender (first names are fine), and how to contact them (e.g. a phone number or incident Slack channel). The request will consist of just the user's proposed page text. Respond with just a very brief message suggesting improvements that the sender might make or saying "Looks good -- send it!". Remember that the user is likely in an urgent, stressful situation, so make your response brief and err on the side of assuming that the message is sufficient if the text might be OK. Assume that the recipient already knows the message is urgent so the sender doesn't have to specify urgency.`),
-
-			openai.UserMessage(m),
-		}),
-		Model: openai.F(openai.ChatModelGPT4o),
-	})
+	comp, err := ph.oai.completeChat(
+		`You are an assistant helping users to write good text to include in an urgent page sent to a person. Good page text contains a very brief description of the problem (e.g. "down" or "slow"), the systems it affects (acronyms for system names are fine), the identity of the sender (first names are fine), and how to contact them (e.g. a phone number or incident Slack channel). The request will consist of just the user's proposed page text. Respond with just a very brief message suggesting improvements that the sender might make or saying "Looks good -- send it!". Remember that the user is likely in an urgent, stressful situation, so make your response brief and err on the side of assuming that the message is sufficient if the text might be OK. Assume that the recipient already knows the message is urgent so the sender doesn't have to specify urgency.`,
+		m,
+	)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "OpenAI error: %s", err)
 		return
 	}
 
-	sendSuggestResponse(w, comp.Choices[0].Message.Content)
+	sendSuggestResponse(w, comp)
 }
 
 var allowedEnvs = []string{
