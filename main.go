@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/openai/openai-go"
 )
 
 type PDAlert struct {
@@ -27,6 +29,7 @@ type PDPayload struct {
 type PHandler struct {
 	tmpl       *template.Template
 	routingKey string
+	mux        *http.ServeMux
 }
 
 func NewPHandler(routingKey string) (*PHandler, error) {
@@ -41,20 +44,30 @@ func NewPHandler(routingKey string) (*PHandler, error) {
 		return nil, fmt.Errorf("static/index.html: %w", err)
 	}
 
-	return &PHandler{
+	ph := &PHandler{
 		tmpl:       tmpl,
 		routingKey: routingKey,
-	}, nil
+		mux:        http.NewServeMux(),
+	}
+
+	ph.mux.HandleFunc("/{$}", ph.serveRoot)
+	ph.mux.HandleFunc("/suggest", ph.serveSuggest)
+
+	return ph, nil
 }
 
 func (ph *PHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	ph.mux.ServeHTTP(w, r)
+}
+
+func (ph *PHandler) serveRoot(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		http.Error(w, fmt.Sprintf("invalid form: %s\n", err), http.StatusBadRequest)
 		return
 	}
 
-	log.Printf("%s %s", r.RemoteAddr, r.Form.Encode())
+	log.Printf("%s %s %s", r.RemoteAddr, r.URL.Path, r.Form.Encode())
 
 	m := r.Form.Get("m")
 	if m == "" {
@@ -98,14 +111,45 @@ func (ph *PHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	body, _ := io.ReadAll(res.Body)
-	res.Body.Close()
+	_ = res.Body.Close()
 
 	if res.StatusCode != 202 {
 		http.Error(w, fmt.Sprintf("error from PD: %s", string(body)), http.StatusBadRequest)
 		return
 	}
 
-	w.Write([]byte("page sent\n"))
+	_, _ = w.Write([]byte("page sent\n"))
+}
+
+func (ph *PHandler) serveSuggest(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, fmt.Sprintf("invalid form: %s\n", err), http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("%s %s %s", r.RemoteAddr, r.URL.Path, r.Form.Encode())
+
+	m := r.Form.Get("m")
+	if m == "" {
+		http.Error(w, "m param required", http.StatusBadRequest)
+	}
+
+	c := openai.NewClient()
+
+	comp, err := c.Chat.Completions.New(r.Context(), openai.ChatCompletionNewParams{
+		Messages: openai.F([]openai.ChatCompletionMessageParamUnion{
+			openai.SystemMessage("You are an assistant helping users to write good text to include in an urgent page sent to a person. Good page text contains a very brief description of the problem, its impact, the identity of the sender, and how to contact them. The request will consist of just the user's proposed page text. Respond with just a very brief message suggesting improvements that the sender might make. Remember that the user is likely in an urgent, stressful situation, so brevity and erring on the side of permissiveness is advised."),
+			openai.UserMessage(m),
+		}),
+		Model: openai.F(openai.ChatModelGPT4o),
+	})
+	if err != nil {
+		http.Error(w, fmt.Sprintf("error from openai: %s", err), http.StatusInternalServerError)
+		return
+	}
+
+	_, _ = w.Write([]byte(comp.Choices[0].Message.Content))
 }
 
 var allowedEnvs = []string{
