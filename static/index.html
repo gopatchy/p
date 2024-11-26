@@ -143,6 +143,10 @@ async function suggestNow() {
 		return;
 	}
 
+	if (document.getElementById('message').value != m) {
+		return;
+	}
+
 	document.getElementById('suggest-msg').innerText = await resp.text();
 	document.getElementById('suggest').show();
 }
