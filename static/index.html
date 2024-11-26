@@ -100,10 +100,11 @@ async function page() {
 	)
 
 	if (!resp.ok) {
-		error('Failed to send page', await resp.text());
+		error('Failed to send page', (await resp.json()).message);
 		return;
 	}
 
+	document.getElementById('sent-msg').innerText = (await resp.json()).message;
 	document.getElementById('sent').show();
 }
 
@@ -112,7 +113,7 @@ async function suggestLater() {
 		clearTimeout(suggestTimer);
 	}
 
-	suggestTimer = setTimeout(suggestNow, 3000);
+	suggestTimer = setTimeout(suggestNow, 2000);
 }
 
 async function suggestNow() {
@@ -182,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
 					<br />
 					<sl-alert id="suggest" variant="primary">
 						<sl-icon slot="icon" name="info-circle"></sl-icon>
-						<strong id="suggest-msg"></strong>
+						<span id="suggest-msg"></span>
 					</sl-alert>
 					<sl-alert id="err" variant="danger">
 						<sl-icon slot="icon" name="exclamation-octagon"></sl-icon>
@@ -191,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
 					</sl-alert>
 					<sl-alert id="sent" variant="success">
 						<sl-icon slot="icon" name="check2-circle"></sl-icon>
-						<strong>Page sent</strong>
+						<strong id="sent-msg"></strong>
 					</sl-alert>
 				</sl-tab-panel>
 				<sl-tab-panel name="contact" style="text-align: center">

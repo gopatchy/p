@@ -63,7 +63,7 @@ func (ph *PHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (ph *PHandler) serveRoot(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		http.Error(w, fmt.Sprintf("invalid form: %s\n", err), http.StatusBadRequest)
+		sendError(w, http.StatusBadRequest, "Parse form: %s", err)
 		return
 	}
 
@@ -73,7 +73,7 @@ func (ph *PHandler) serveRoot(w http.ResponseWriter, r *http.Request) {
 	if m == "" {
 		err = ph.tmpl.Execute(w, ph.envs())
 		if err != nil {
-			http.Error(w, fmt.Sprintf("execute %s: %s\n", ph.tmpl.Name(), err), http.StatusBadRequest)
+			sendError(w, http.StatusInternalServerError, "Execute template %s: %s", ph.tmpl.Name(), err)
 			return
 		}
 
@@ -92,13 +92,13 @@ func (ph *PHandler) serveRoot(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to create PD request: %s\n", err), http.StatusBadRequest)
+		sendError(w, http.StatusInternalServerError, "Create PD request: %s", err)
 		return
 	}
 
 	req, err := http.NewRequest("POST", "https://events.pagerduty.com/v2/enqueue", buf)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to create HTTP request: %s\n", err), http.StatusBadRequest)
+		sendError(w, http.StatusInternalServerError, "Create HTTP request: %s", err)
 		return
 	}
 
@@ -106,7 +106,7 @@ func (ph *PHandler) serveRoot(w http.ResponseWriter, r *http.Request) {
 	res, err := c.Do(req)
 
 	if err != nil {
-		http.Error(w, fmt.Sprintf("error from PD: %s\n", err), http.StatusBadRequest)
+		sendError(w, http.StatusInternalServerError, "Call PagerDuty: %s", err)
 		return
 	}
 
@@ -114,17 +114,17 @@ func (ph *PHandler) serveRoot(w http.ResponseWriter, r *http.Request) {
 	_ = res.Body.Close()
 
 	if res.StatusCode != 202 {
-		http.Error(w, fmt.Sprintf("error from PD: %s", string(body)), http.StatusBadRequest)
+		sendError(w, http.StatusInternalServerError, "PagerDuty error: %s", string(body))
 		return
 	}
 
-	_, _ = w.Write([]byte("page sent\n"))
+	sendResponse(w, "Page sent")
 }
 
 func (ph *PHandler) serveSuggest(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		http.Error(w, fmt.Sprintf("invalid form: %s\n", err), http.StatusBadRequest)
+		sendError(w, http.StatusBadRequest, "Parse form: %s", err)
 		return
 	}
 
@@ -132,21 +132,22 @@ func (ph *PHandler) serveSuggest(w http.ResponseWriter, r *http.Request) {
 
 	m := r.Form.Get("m")
 	if m == "" {
-		http.Error(w, "m param required", http.StatusBadRequest)
+		sendError(w, http.StatusBadRequest, "m= param required")
+		return
 	}
 
 	c := openai.NewClient()
 
 	comp, err := c.Chat.Completions.New(r.Context(), openai.ChatCompletionNewParams{
 		Messages: openai.F([]openai.ChatCompletionMessageParamUnion{
-			openai.SystemMessage(`You are an assistant helping users to write good text to include in an urgent page sent to a person. Good page text contains a very brief description of the problem (e.g. "down" or "slow"), the systems it affects (acronyms for system names are fine), the identity of the sender (first names are fine), and how to contact them (e.g. a phone number or incident Slack channel). The request will consist of just the user's proposed page text. Respond with just a very brief message suggesting improvements that the sender might make or saying "Looks good, send it!". Remember that the user is likely in an urgent, stressful situation, so make your response brief and err on the side of assuming that the message is sufficient if the text might be OK. Assume that the recipient already knows the message is urgent so the sender doesn't have to specify urgency.`),
+			openai.SystemMessage(`You are an assistant helping users to write good text to include in an urgent page sent to a person. Good page text contains a very brief description of the problem (e.g. "down" or "slow"), the systems it affects (acronyms for system names are fine), the identity of the sender (first names are fine), and how to contact them (e.g. a phone number or incident Slack channel). The request will consist of just the user's proposed page text. Respond with just a very brief message suggesting improvements that the sender might make or saying "Looks good -- send it!". Remember that the user is likely in an urgent, stressful situation, so make your response brief and err on the side of assuming that the message is sufficient if the text might be OK. Assume that the recipient already knows the message is urgent so the sender doesn't have to specify urgency.`),
 
 			openai.UserMessage(m),
 		}),
 		Model: openai.F(openai.ChatModelGPT4o),
 	})
 	if err != nil {
-		http.Error(w, fmt.Sprintf("error from openai: %s", err), http.StatusInternalServerError)
+		sendError(w, http.StatusInternalServerError, "OpenAI error: %s", err)
 		return
 	}
 
