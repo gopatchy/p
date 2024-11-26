@@ -57,7 +57,11 @@ sl-copy-button {
 				/>
 		<script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/shoelace-autoloader.js"></script>
 		<script>
+let suggestTimer = null;
+let lastSuggestMessage = null;
+
 function clearAlerts() {
+	document.getElementById('suggest').hide();
 	document.getElementById('sent').hide();
 	document.getElementById('err').hide();
 }
@@ -102,6 +106,61 @@ async function page() {
 
 	document.getElementById('sent').show();
 }
+
+async function suggestLater() {
+	if (suggestTimer) {
+		clearTimeout(suggestTimer);
+	}
+
+	suggestTimer = setTimeout(suggestNow, 3000);
+}
+
+async function suggestNow() {
+	if (suggestTimer) {
+		clearTimeout(suggestTimer);
+		suggestTimer = null;
+	}
+
+	const m = document.getElementById('message').value;
+
+	if (m == '') {
+		return;
+	}
+
+	if (m == lastSuggestMessage) {
+		return;
+	}
+
+	lastSuggestMessage = m;
+
+	const params = new URLSearchParams({
+		m: m,
+	});
+
+	const resp = await fetch('/suggest?' + params.toString());
+
+	if (!resp.ok) {
+		return;
+	}
+
+	document.getElementById('suggest-msg').innerText = await resp.text();
+	document.getElementById('suggest').show();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+	var msg = document.getElementById('message');
+
+	msg.focus();
+
+	msg.addEventListener('sl-input', () => {
+		clearAlerts();
+		suggestLater();
+	});
+
+	msg.addEventListener('sl-blur', () => {
+		suggestNow();
+	});
+});
 		</script>
 	</head>
 	<body>
@@ -111,12 +170,16 @@ async function page() {
 				<sl-tab slot="nav" panel="contact">Contact</sl-tab>
 
 				<sl-tab-panel name="page">
-					<sl-textarea id="message" placeholder="Message" oninput="clearAlerts()"></sl-textarea>
+					<sl-textarea id="message" placeholder="Message"></sl-textarea>
 					<br />
 					<div style="text-align: center">
 						<sl-button type="submit" variant="danger" onclick="page()">Page {{.SHORT_NAME}}</sl-button>
 					</div>
 					<br />
+					<sl-alert id="suggest" variant="primary">
+						<sl-icon slot="icon" name="info-circle"></sl-icon>
+						<strong id="suggest-msg"></strong>
+					</sl-alert>
 					<sl-alert id="err" variant="danger">
 						<sl-icon slot="icon" name="exclamation-octagon"></sl-icon>
 						<strong id="err1"></strong><br />
