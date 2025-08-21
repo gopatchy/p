@@ -115,6 +115,7 @@ var allowedEnvs = []string{
 	"CONTACT_IMESSAGE",
 	"CONTACT_WHATSAPP",
 	"CONTACT_PAGE_EMAIL",
+	"GARMIN_MAPSHARE_URL",
 }
 
 func (ph *PHandler) envs() map[string]string {
