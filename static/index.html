@@ -261,6 +261,10 @@ EMAIL:{{.CONTACT_PAGE_EMAIL}}
 URL:mailto:{{.CONTACT_PAGE_EMAIL}}
 {{end}}
 
+{{if .GARMIN_MAPSHARE_URL}}
+URL:{{.GARMIN_MAPSHARE_URL}}
+{{end}}
+
 END:VCARD
 `;
 								document.getElementById('qr').value = qr;
