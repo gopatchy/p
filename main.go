@@ -70,7 +70,7 @@ func (ph *PHandler) serveRoot(w http.ResponseWriter, r *http.Request) {
 
 	err = ph.sendAlert(m)
 	if err != nil {
-		sendError(w, http.StatusInternalServerError, "Error sending to PagerDuty: %s", err)
+		sendError(w, http.StatusInternalServerError, "%s", err)
 		return
 	}
 	sendResponse(w, "Page sent")
@@ -79,12 +79,12 @@ func (ph *PHandler) serveRoot(w http.ResponseWriter, r *http.Request) {
 func (ph *PHandler) sendAlert(m string) error {
 	err := ph.pd.sendAlert(m)
 	if err != nil {
-		return fmt.Errorf("Error sending to PagerDuty: %s", err)
+		return fmt.Errorf("Error sending to PagerDuty: %w", err)
 	}
 
 	err = ph.gc.sendMessage(ph.garminIMEI, ph.garminSender, m)
 	if err != nil {
-		return fmt.Errorf("Error sending to Garmin: %s", err)
+		return fmt.Errorf("Error sending to Garmin: %w", err)
 	}
 
 	return nil
