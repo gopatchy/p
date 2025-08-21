@@ -44,7 +44,7 @@ func (gc *garminClient) sendMessage(imei, sender, msg string) error {
 			{
 				Recipients: []string{imei},
 				Sender:     sender,
-				Timestamp:  time.Now().Format(time.RFC3339),
+				Timestamp:  time.Now().UTC().Format("2006-01-02T15:04:05Z"),
 				Message:    msg,
 			},
 		},
