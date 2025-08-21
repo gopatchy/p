@@ -10,12 +10,15 @@ import (
 )
 
 type PHandler struct {
-	tmpl *template.Template
-	pd   *pdClient
-	mux  *http.ServeMux
+	tmpl         *template.Template
+	pd           *pdClient
+	gc           *garminClient
+	garminIMEI   string
+	garminSender string
+	mux          *http.ServeMux
 }
 
-func NewPHandler(routingKey string) (*PHandler, error) {
+func NewPHandler(pdRoutingKey, garminApiKey, garminIMEI, garminSender string) (*PHandler, error) {
 	tmpl := template.New("index.html")
 
 	tmpl.Funcs(template.FuncMap{
@@ -28,9 +31,12 @@ func NewPHandler(routingKey string) (*PHandler, error) {
 	}
 
 	ph := &PHandler{
-		tmpl: tmpl,
-		pd:   newPDClient(routingKey),
-		mux:  http.NewServeMux(),
+		tmpl:         tmpl,
+		pd:           newPDClient(pdRoutingKey),
+		gc:           newGarminClient(garminApiKey),
+		garminIMEI:   garminIMEI,
+		garminSender: garminSender,
+		mux:          http.NewServeMux(),
 	}
 
 	ph.mux.HandleFunc("/{$}", ph.serveRoot)
@@ -62,12 +68,26 @@ func (ph *PHandler) serveRoot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = ph.pd.sendAlert(m)
+	err = ph.sendAlert(m)
 	if err != nil {
 		sendError(w, http.StatusInternalServerError, "Error sending to PagerDuty: %s", err)
 		return
 	}
 	sendResponse(w, "Page sent")
+}
+
+func (ph *PHandler) sendAlert(m string) error {
+	err := ph.pd.sendAlert(m)
+	if err != nil {
+		return fmt.Errorf("Error sending to PagerDuty: %s", err)
+	}
+
+	err = ph.gc.sendMessage(ph.garminIMEI, ph.garminSender, m)
+	if err != nil {
+		return fmt.Errorf("Error sending to Garmin: %s", err)
+	}
+
+	return nil
 }
 
 var allowedEnvs = []string{
@@ -94,12 +114,27 @@ func (ph *PHandler) envs() map[string]string {
 }
 
 func main() {
-	routingKey := os.Getenv("PD_ROUTING_KEY")
-	if routingKey == "" {
+	pdRoutingKey := os.Getenv("PD_ROUTING_KEY")
+	if pdRoutingKey == "" {
 		log.Fatalf("please set PD_ROUTING_KEY")
 	}
 
-	ph, err := NewPHandler(routingKey)
+	garminApiKey := os.Getenv("GARMIN_API_KEY")
+	if garminApiKey == "" {
+		log.Fatalf("please set GARMIN_API_KEY")
+	}
+
+	garminIMEI := os.Getenv("GARMIN_IMEI")
+	if garminIMEI == "" {
+		log.Fatalf("please set GARMIN_IMEI")
+	}
+
+	garminSender := os.Getenv("GARMIN_SENDER")
+	if garminSender == "" {
+		log.Fatalf("please set GARMIN_SENDER")
+	}
+
+	ph, err := NewPHandler(pdRoutingKey, garminApiKey, garminIMEI, garminSender)
 	if err != nil {
 		log.Fatalf("NewPHandler: %s", err)
 	}
