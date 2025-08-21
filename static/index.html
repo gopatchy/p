@@ -57,11 +57,7 @@ sl-copy-button {
 				/>
 		<script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/shoelace-autoloader.js"></script>
 		<script>
-let suggestTimer = null;
-let lastSuggestMessage = null;
-
 function clearAlerts() {
-	document.getElementById('suggest').hide();
 	document.getElementById('sent').hide();
 	document.getElementById('err').hide();
 }
@@ -108,63 +104,10 @@ async function page() {
 	document.getElementById('sent').show();
 }
 
-async function suggestLater() {
-	if (suggestTimer) {
-		clearTimeout(suggestTimer);
-	}
-
-	suggestTimer = setTimeout(suggestNow, 2000);
-}
-
-async function suggestNow() {
-	if (suggestTimer) {
-		clearTimeout(suggestTimer);
-		suggestTimer = null;
-	}
-
-	const m = document.getElementById('message').value;
-
-	if (m == '') {
-		return;
-	}
-
-	if (m == lastSuggestMessage) {
-		return;
-	}
-
-	lastSuggestMessage = m;
-
-	const params = new URLSearchParams({
-		m: m,
-	});
-
-	const resp = await fetch('/suggest?' + params.toString());
-
-	if (!resp.ok) {
-		return;
-	}
-
-	if (document.getElementById('message').value != m) {
-		return;
-	}
-
-	document.getElementById('suggest-msg').innerText = (await resp.json()).message;
-	document.getElementById('suggest').show();
-}
-
 document.addEventListener('DOMContentLoaded', () => {
 	var msg = document.getElementById('message');
 
 	msg.focus();
-
-	msg.addEventListener('sl-input', () => {
-		clearAlerts();
-		suggestLater();
-	});
-
-	msg.addEventListener('sl-blur', () => {
-		suggestNow();
-	});
 });
 		</script>
 	</head>
@@ -181,10 +124,6 @@ document.addEventListener('DOMContentLoaded', () => {
 						<sl-button type="submit" variant="danger" onclick="page()">Page {{.SHORT_NAME}}</sl-button>
 					</div>
 					<br />
-					<sl-alert id="suggest" variant="primary">
-						<sl-icon slot="icon" name="info-circle"></sl-icon>
-						<span id="suggest-msg"></span>
-					</sl-alert>
 					<sl-alert id="err" variant="danger">
 						<sl-icon slot="icon" name="exclamation-octagon"></sl-icon>
 						<strong id="err1"></strong><br />
