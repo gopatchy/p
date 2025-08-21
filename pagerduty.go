@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 )
 
@@ -48,6 +49,8 @@ func (pd *pdClient) sendAlert(msg string) error {
 		return err
 	}
 
+	log.Printf("[->pagerduty] %s", buf.String())
+
 	req, err := http.NewRequest("POST", "https://events.pagerduty.com/v2/enqueue", buf)
 	if err != nil {
 		return err
@@ -66,6 +69,8 @@ func (pd *pdClient) sendAlert(msg string) error {
 	if resp.StatusCode != 202 {
 		return fmt.Errorf("%s", string(body))
 	}
+
+	log.Printf("[<-pagerduty] %s", string(body))
 
 	return nil
 }

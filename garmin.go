@@ -54,7 +54,7 @@ func (gc *garminClient) sendMessage(imei, sender, msg string) error {
 		return err
 	}
 
-	log.Printf("sending message to garmin: %s", buf.String())
+	log.Printf("[->garmin] %s", buf.String())
 
 	req, err := http.NewRequest("POST", "https://ipcinbound.inreachapp.com/IPC/IPCInboundApi/api/Messaging/Message", buf)
 	if err != nil {
@@ -77,10 +77,12 @@ func (gc *garminClient) sendMessage(imei, sender, msg string) error {
 	}
 
 	grResp := garminMessageResponse{}
-	err = json.NewDecoder(resp.Body).Decode(&grResp)
+	err = json.Unmarshal(body, &grResp)
 	if err != nil {
 		return err
 	}
+
+	log.Printf("[<-garmin] %s", string(body))
 
 	if grResp.Count != 1 {
 		return fmt.Errorf("expected 1 message, got %d", grResp.Count)
