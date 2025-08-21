@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"time"
 )
@@ -52,6 +53,8 @@ func (gc *garminClient) sendMessage(imei, sender, msg string) error {
 	if err != nil {
 		return err
 	}
+
+	log.Printf("sending message to garmin: %s", buf.String())
 
 	req, err := http.NewRequest("POST", "https://ipcinbound.inreachapp.com/IPC/IPCInboundApi/api/Messaging/Message", buf)
 	if err != nil {
