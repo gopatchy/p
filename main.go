@@ -77,14 +77,31 @@ func (ph *PHandler) serveRoot(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ph *PHandler) sendAlert(m string) error {
-	err := ph.pd.sendAlert(m)
-	if err != nil {
-		return fmt.Errorf("Error sending to PagerDuty: %w", err)
-	}
+	res := make(chan error, 2)
 
-	err = ph.gc.sendMessage(ph.garminIMEI, ph.garminSender, m)
-	if err != nil {
-		return fmt.Errorf("Error sending to Garmin: %w", err)
+	go func() {
+		err := ph.gc.sendMessage(ph.garminIMEI, ph.garminSender, m)
+		if err != nil {
+			res <- fmt.Errorf("Error sending to Garmin: %w", err)
+		} else {
+			res <- nil
+		}
+	}()
+
+	go func() {
+		err := ph.pd.sendAlert(m)
+		if err != nil {
+			res <- fmt.Errorf("Error sending to PagerDuty: %w", err)
+		} else {
+			res <- nil
+		}
+	}()
+
+	for i := 0; i < 2; i++ {
+		err := <-res
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
