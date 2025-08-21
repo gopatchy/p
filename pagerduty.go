@@ -21,6 +21,12 @@ type pdPayload struct {
 	Severity string `json:"severity"`
 }
 
+type pdResponse struct {
+	DedupKey string `json:"dedup_key"`
+	Message  string `json:"message"`
+	Status   string `json:"status"`
+}
+
 type pdClient struct {
 	c          *http.Client
 	routingKey string
@@ -71,6 +77,16 @@ func (pd *pdClient) sendAlert(msg string) error {
 	}
 
 	log.Printf("[<-pagerduty] %s", string(body))
+
+	pdResp := pdResponse{}
+	err = json.Unmarshal(body, &pdResp)
+	if err != nil {
+		return err
+	}
+
+	if pdResp.Status != "success" {
+		return fmt.Errorf("%s: %s", pdResp.Status, pdResp.Message)
+	}
 
 	return nil
 }
